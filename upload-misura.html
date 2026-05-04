@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Misura Image</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #fff;
+    }
+    .container {
+      background: #2a2a2a;
+      padding: 30px;
+      border-radius: 8px;
+    }
+    input[type="file"] {
+      margin: 20px 0;
+      padding: 10px;
+      width: 100%;
+    }
+    button {
+      background: #00d9ff;
+      color: #000;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #00b8dd;
+    }
+    #status {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 4px;
+    }
+    .success {
+      background: #00ff88;
+      color: #000;
+    }
+    .error {
+      background: #ff3366;
+      color: #fff;
+    }
+    .info {
+      background: #444;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Upload Misura Profile Picture</h1>
+    <p>Select the image file to upload to Supabase Storage</p>
+    <input type="file" id="fileInput" accept="image/*">
+    <button onclick="uploadImage()">Upload Image</button>
+    <div id="status"></div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://rquvxzqlvbkckqncyplj.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJxdXZ4enFsdmJrY2txbmN5cGxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwMDMyNzUsImV4cCI6MjA3ODU3OTI3NX0.HejNyxs1z_8Cl3wqxqfiX5yvGxcYSBy5biYvtXIoENQ';
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function uploadImage() {
+      const fileInput = document.getElementById('fileInput');
+      const status = document.getElementById('status');
+
+      if (!fileInput.files || fileInput.files.length === 0) {
+        status.className = 'error';
+        status.textContent = 'Please select a file first!';
+        return;
+      }
+
+      const file = fileInput.files[0];
+      const fileName = `misura-${Date.now()}.jpg`;
+
+      status.className = 'info';
+      status.textContent = 'Uploading image...';
+
+      try {
+        // Upload to Supabase Storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('artist-images')
+          .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (uploadError) throw uploadError;
+
+        // Get public URL
+        const { data: urlData } = supabase.storage
+          .from('artist-images')
+          .getPublicUrl(fileName);
+
+        const publicUrl = urlData.publicUrl;
+
+        // Update database
+        const { error: updateError } = await supabase
+          .from('artists')
+          .update({ image_url: publicUrl })
+          .eq('name', 'MISURA');
+
+        if (updateError) throw updateError;
+
+        status.className = 'success';
+        status.innerHTML = `
+          <strong>Success!</strong><br>
+          Image uploaded and database updated!<br>
+          <small>URL: ${publicUrl}</small>
+        `;
+
+        console.log('Public URL:', publicUrl);
+      } catch (error) {
+        status.className = 'error';
+        status.textContent = `Error: ${error.message}`;
+        console.error('Upload error:', error);
+      }
+    }
+  </script>
+</body>
+</html>
