@@ -57,7 +57,7 @@ Each page is a standalone React component in `src/pages/`. Pages fetch their own
 | Component | Purpose |
 |---|---|
 | `ScrollReveal` | Wraps any child in an Intersection Observer animation. Props: `direction` (up/down/left/right), `delay` (ms). Used on almost every section. |
-| `SEO` | Accepts `title`, `description`, `keywords`, `image`, `url`, `schema` props. Renders helmet tags + JSON-LD. Base URL is hardcoded as `https://takeabreak.events`. |
+| `SEO` | Accepts `title`, `description`, `keywords`, `image`, `url`, `schema` props. Renders helmet tags + JSON-LD. Base URL comes from `VITE_SITE_URL` or defaults to `https://takeabreaksets.com` (`src/lib/siteUrl.ts`). |
 
 ---
 

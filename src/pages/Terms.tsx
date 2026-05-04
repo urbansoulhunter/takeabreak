@@ -1,10 +1,17 @@
 import React from 'react';
 import { FileText } from 'lucide-react';
 import ScrollReveal from '../components/ScrollReveal';
+import SEO from '../components/SEO';
 
 const Terms: React.FC = () => {
   return (
     <div className="relative min-h-screen pt-24 pb-16 px-4">
+      <SEO
+        title="Live Streaming Terms"
+        description="Terms and conditions for Take a Break live streaming events. Registration, attendance, recording consent, and participant responsibilities."
+        keywords="Take a Break, live stream terms, drum and bass, event registration"
+        url="/terms"
+      />
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-20">
           <h1 className="text-5xl md:text-7xl font-black text-[#00f0ff] neon-glow mb-6 uppercase tracking-tighter">

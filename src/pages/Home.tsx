@@ -1,22 +1,38 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../contexts/useLanguage';
 import SEO from '../components/SEO';
+import { getDefaultOgImageUrl, getSiteUrl } from '../lib/siteUrl';
 
 const OLBIA_FLYER_URL = 'https://iili.io/BQBvybI.md.jpg';
 
 const Home: React.FC = () => {
   const { t } = useLanguage();
+  const siteUrl = getSiteUrl();
+  const brandImage = getDefaultOgImageUrl();
+
+  useEffect(() => {
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = OLBIA_FLYER_URL;
+    document.head.appendChild(link);
+    return () => {
+      document.head.removeChild(link);
+    };
+  }, []);
 
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "Take a Break",
     "description": "Beyond The Beat, Always. Premium eventi di drum & bass e UK garage in Sardegna",
-    "url": "https://takeabreak.events",
-    "logo": "https://takeabreak.events/logo.png",
+    "url": siteUrl,
+    "logo": brandImage,
     "sameAs": [
-      "https://www.instagram.com/takeabreak.events"
+      "https://www.instagram.com/takeabreak.events",
+      "https://www.instagram.com/takeabreakset",
+      "https://www.mixcloud.com/takeabreaksets/",
     ],
     "address": {
       "@type": "PostalAddress",

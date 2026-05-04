@@ -7,6 +7,7 @@ import type { Database } from '../lib/database.types';
 import { eventItalianField } from '../lib/eventI18nFallbacks';
 import { formatLineupDisplayName, sortLineupForDisplay } from '../lib/lineupDisplay';
 import type { Language } from '../lib/translations';
+import { absoluteSiteUrl, getSiteUrl } from '../lib/siteUrl';
 
 type Event = Database['public']['Tables']['events']['Row'];
 
@@ -89,33 +90,70 @@ const Events: React.FC = () => {
   };
 
   const upcomingEvents = filteredEvents.filter(e => e.status === 'upcoming' || e.status === 'sold_out');
+  const siteUrl = getSiteUrl();
+
+  const eventEndDate = (startIso: string) => {
+    const d = new Date(startIso);
+    d.setHours(d.getHours() + 8);
+    return d.toISOString();
+  };
+
   const eventListSchema = upcomingEvents.length > 0 ? {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    "itemListElement": upcomingEvents.map((event, index) => ({
-      "@type": "MusicEvent",
-      "position": index + 1,
-      "name": pickLocalized(language, event.title, eventItalianField(event, 'title_it')),
-      "startDate": event.date,
-      "location": {
-        "@type": "Place",
-        "name": pickLocalized(language, event.venue, eventItalianField(event, 'venue_it')),
-        "address": {
-          "@type": "PostalAddress",
-          "addressLocality": pickLocalized(language, event.location, eventItalianField(event, 'location_it')),
-          "addressCountry": "IT"
-        }
-      },
-      "image": event.flyer_url || event.image_url,
-      "description": pickLocalizedNullable(language, event.description, eventItalianField(event, 'description_it')),
-      "eventStatus": event.status === 'sold_out' ? "https://schema.org/EventSoldOut" : "https://schema.org/EventScheduled",
-      "performer": event.lineup
-        ? sortLineupForDisplay(event.lineup).map((artist) => ({
-            "@type": "MusicGroup",
-            "name": artist,
-          }))
-        : []
-    }))
+    "itemListElement": upcomingEvents.map((event, index) => {
+      const name = pickLocalized(language, event.title, eventItalianField(event, 'title_it'));
+      const ticketUrl = event.ticket_link?.trim() || null;
+      const offers =
+        ticketUrl && event.status !== 'past'
+          ? {
+              "@type": "Offer",
+              "url": ticketUrl,
+              "availability":
+                event.status === 'sold_out'
+                  ? "https://schema.org/SoldOut"
+                  : "https://schema.org/InStock",
+              "priceCurrency": "EUR",
+            }
+          : undefined;
+
+      return {
+        "@type": "MusicEvent",
+        "position": index + 1,
+        "name": name,
+        "startDate": event.date,
+        "endDate": eventEndDate(event.date),
+        "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+        "organizer": {
+          "@type": "Organization",
+          "name": "Take a Break",
+          "url": siteUrl,
+        },
+        "location": {
+          "@type": "Place",
+          "name": pickLocalized(language, event.venue, eventItalianField(event, 'venue_it')),
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": pickLocalized(language, event.location, eventItalianField(event, 'location_it')),
+            "addressCountry": "IT"
+          }
+        },
+        "image": (() => {
+          const img = event.flyer_url || event.image_url;
+          if (!img) return undefined;
+          return absoluteSiteUrl(img);
+        })(),
+        "description": pickLocalizedNullable(language, event.description, eventItalianField(event, 'description_it')),
+        "eventStatus": event.status === 'sold_out' ? "https://schema.org/EventSoldOut" : "https://schema.org/EventScheduled",
+        ...(offers ? { offers: [offers] } : {}),
+        "performer": event.lineup
+          ? sortLineupForDisplay(event.lineup).map((artist) => ({
+              "@type": "MusicGroup",
+              "name": artist,
+            }))
+          : []
+      };
+    })
   } : undefined;
 
   return (

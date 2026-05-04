@@ -2,12 +2,19 @@ import React from 'react';
 import { FileText } from 'lucide-react';
 import ScrollReveal from '../components/ScrollReveal';
 import { useLanguage } from '../contexts/useLanguage';
+import SEO from '../components/SEO';
 
 const TermsAndConditions: React.FC = () => {
   const { t } = useLanguage();
 
   return (
     <div className="relative min-h-screen pt-24 pb-16 px-4">
+      <SEO
+        title={t.termsAndConditions.title}
+        description={t.termsAndConditions.introduction}
+        keywords="Take a Break, terms and conditions, website terms, GDPR, events"
+        url="/terms-and-conditions"
+      />
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-20">
           <h1 className="text-5xl md:text-7xl font-black text-[#00f0ff] neon-glow mb-6 uppercase tracking-tighter">

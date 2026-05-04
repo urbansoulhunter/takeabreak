@@ -130,7 +130,7 @@ Migration files are in `supabase/migrations/` and must be applied in chronologic
 
 ## Domain / DNS
 
-The SEO component (`src/components/SEO.tsx`) has `https://takeabreak.events` hardcoded as the base URL for Open Graph tags and canonical links. If you change the domain, update that constant in `SEO.tsx`.
+Canonical URLs, Open Graph defaults, `sitemap.xml`, and `robots.txt` use **`VITE_SITE_URL`** at build time (see `ENVIRONMENT.md`). If unset, the default is `https://takeabreaksets.com`. Set `VITE_SITE_URL` in Netlify to your live origin (no trailing slash) so previews and production match.
 
 For a custom domain on Netlify: Site settings → Domain management → Add custom domain. Update your DNS registrar to point to Netlify's nameservers or add the provided A/CNAME records.
 
