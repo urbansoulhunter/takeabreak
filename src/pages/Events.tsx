@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Calendar, MapPin, ExternalLink, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useLanguage } from '../contexts/useLanguage';
 import SEO from '../components/SEO';
 import type { Database } from '../lib/database.types';
 import { eventItalianField } from '../lib/eventI18nFallbacks';
+import { formatLineupDisplayName, sortLineupForDisplay } from '../lib/lineupDisplay';
 import type { Language } from '../lib/translations';
 
 type Event = Database['public']['Tables']['events']['Row'];
@@ -60,12 +61,20 @@ const Events: React.FC = () => {
     }
   };
 
-  const filteredEvents = events.filter((event) => {
-    if (filter === 'all') return true;
-    if (filter === 'upcoming') return event.status === 'upcoming' || event.status === 'sold_out';
-    if (filter === 'past') return event.status === 'past';
-    return true;
-  });
+  const filteredEvents = useMemo(() => {
+    const list = events.filter((event) => {
+      if (filter === 'all') return true;
+      if (filter === 'upcoming') return event.status === 'upcoming' || event.status === 'sold_out';
+      if (filter === 'past') return event.status === 'past';
+      return true;
+    });
+    if (filter === 'past') {
+      return [...list].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+      );
+    }
+    return list;
+  }, [events, filter]);
 
   const dateLocale = language === 'it' ? 'it-IT' : 'en-GB';
 
@@ -100,10 +109,12 @@ const Events: React.FC = () => {
       "image": event.flyer_url || event.image_url,
       "description": pickLocalizedNullable(language, event.description, eventItalianField(event, 'description_it')),
       "eventStatus": event.status === 'sold_out' ? "https://schema.org/EventSoldOut" : "https://schema.org/EventScheduled",
-      "performer": event.lineup ? event.lineup.map(artist => ({
-        "@type": "MusicGroup",
-        "name": artist
-      })) : []
+      "performer": event.lineup
+        ? sortLineupForDisplay(event.lineup).map((artist) => ({
+            "@type": "MusicGroup",
+            "name": artist,
+          }))
+        : []
     }))
   } : undefined;
 
@@ -159,6 +170,9 @@ const Events: React.FC = () => {
               const displayVenue = pickLocalized(language, event.venue, eventItalianField(event, 'venue_it'));
               const displayLocation = pickLocalized(language, event.location, eventItalianField(event, 'location_it'));
               const displayDescription = pickLocalizedNullable(language, event.description, eventItalianField(event, 'description_it'));
+              const displayLineup = event.lineup?.length
+                ? sortLineupForDisplay(event.lineup)
+                : [];
               return (
                 <div
                   key={event.id}
@@ -166,13 +180,14 @@ const Events: React.FC = () => {
                   onClick={() => setSelectedEvent(event)}
                 >
                   {(event.flyer_url || event.image_url) && (
-                    <div className="relative h-48 overflow-hidden">
+                    <div className="relative w-full bg-[#121212] border-b border-[#00f0ff]/15">
                       <img
                         src={event.flyer_url || event.image_url}
                         alt={displayTitle}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        className="w-full h-auto block"
+                        loading="lazy"
+                        decoding="async"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a1a] to-transparent"></div>
                     </div>
                   )}
 
@@ -218,23 +233,23 @@ const Events: React.FC = () => {
                       </p>
                     )}
 
-                    {event.lineup && event.lineup.length > 0 && (
+                    {displayLineup.length > 0 && (
                       <div className="mb-4">
                         <p className="text-xs text-[#00f0ff] font-medium mb-2 uppercase tracking-wider">
                           {t.events.lineup}
                         </p>
                         <div className="flex flex-wrap gap-2">
-                          {event.lineup.slice(0, 3).map((artist, index) => (
+                          {displayLineup.slice(0, 3).map((artist, index) => (
                             <span
-                              key={index}
-                              className="text-xs px-2 py-1 bg-[#00f0ff]/10 border border-[#00f0ff]/30 text-[#e8e8e8]"
+                              key={`${artist}-${index}`}
+                              className="text-xs px-2 py-1 bg-[#00f0ff]/10 border border-[#00f0ff]/30 text-[#e8e8e8] uppercase tracking-wide"
                             >
-                              {artist}
+                              {formatLineupDisplayName(artist)}
                             </span>
                           ))}
-                          {event.lineup.length > 3 && (
-                            <span className="text-xs px-2 py-1 text-[#a0a0a0]">
-                              {t.events.lineupMore.replace('{{count}}', String(event.lineup.length - 3))}
+                          {displayLineup.length > 3 && (
+                            <span className="text-xs px-2 py-1 text-[#a0a0a0] uppercase tracking-wide">
+                              {t.events.lineupMore.replace('{{count}}', String(displayLineup.length - 3))}
                             </span>
                           )}
                         </div>
@@ -265,6 +280,9 @@ const Events: React.FC = () => {
         const modalVenue = pickLocalized(language, selectedEvent.venue, eventItalianField(selectedEvent, 'venue_it'));
         const modalLocation = pickLocalized(language, selectedEvent.location, eventItalianField(selectedEvent, 'location_it'));
         const modalDescription = pickLocalizedNullable(language, selectedEvent.description, eventItalianField(selectedEvent, 'description_it'));
+        const modalLineup = selectedEvent.lineup?.length
+          ? sortLineupForDisplay(selectedEvent.lineup)
+          : [];
         return (
         <div
           className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
@@ -314,16 +332,16 @@ const Events: React.FC = () => {
                     {modalDescription && (
                       <p className="text-[#a0a0a0] mt-4">{modalDescription}</p>
                     )}
-                    {selectedEvent.lineup && selectedEvent.lineup.length > 0 && (
+                    {modalLineup.length > 0 && (
                       <div className="mt-6">
 <h3 className="text-xl font-bold text-[#00f0ff] mb-3 uppercase">{t.events.lineup}</h3>
                         <div className="flex flex-wrap gap-2">
-                          {selectedEvent.lineup.map((artist, index) => (
+                          {modalLineup.map((artist, index) => (
                             <span
-                              key={index}
-                              className="px-4 py-2 bg-[#00f0ff]/10 border border-[#00f0ff]/30 text-[#e8e8e8] font-medium"
+                              key={`${artist}-${index}`}
+                              className="px-4 py-2 bg-[#00f0ff]/10 border border-[#00f0ff]/30 text-[#e8e8e8] font-medium uppercase tracking-wide"
                             >
-                              {artist}
+                              {formatLineupDisplayName(artist)}
                             </span>
                           ))}
                         </div>
