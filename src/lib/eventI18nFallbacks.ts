@@ -20,6 +20,13 @@ export const EVENT_I18N_BY_FLYER: Record<
     description_it:
       'Bass One Union presenta Bonnot con ospite speciale General Levy. Venerdì 15 maggio 2026, 21:00–04:00. 18+ | Senza documento non si entra | Ultimo ingresso 2:00 | Vietati copricapo e tuta | Solo bar card. Biglietti dal QR sul flyer.',
   },
+  'https://iili.io/BQUIrhl.md.jpg': {
+    title_it: 'Take a Break — Drum & Bass (Londra)',
+    description_it:
+      'Drum & bass al Groove Tank Live. Sabato 9 maggio 2026, 19:00–00:00 (UK). Ingresso £5; offerta biglietto gratuito — posti limitati, registrazione obbligatoria (QR sul flyer). Live su YouTube. Con Jungle Planet Radio, Take a Break e Lost Souls.',
+    venue_it: 'Groove Tank Live',
+    location_it: 'Unit 67, Containerville Studios, 40 The Oval, London E2 9DT, Regno Unito',
+  },
 };
 
 export function eventItalianField(
