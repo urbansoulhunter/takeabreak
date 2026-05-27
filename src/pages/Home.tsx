@@ -20,8 +20,7 @@ const Home: React.FC = () => {
     "url": siteUrl,
     "logo": brandImage,
     "sameAs": [
-      "https://www.instagram.com/takeabreak.events",
-      "https://www.instagram.com/takeabreakset",
+      "https://www.instagram.com/takeabreaksets",
       "https://www.mixcloud.com/takeabreaksets/",
     ],
     "address": {

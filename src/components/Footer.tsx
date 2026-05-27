@@ -20,13 +20,13 @@ const Footer: React.FC = () => {
           <div>
 <h4 className="text-sm font-bold text-[#e8e8e8] tracking-wider mb-4">{t.footer.followUs.toUpperCase()}</h4>
             <a
-              href="https://instagram.com/takeabreakset"
+              href="https://instagram.com/takeabreaksets"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-[#a0a0a0] hover:text-[#00f0ff] transition-colors"
             >
               <Instagram size={20} />
-              <span>@takeabreakset</span>
+              <span>@takeabreaksets</span>
             </a>
           </div>
         </div>

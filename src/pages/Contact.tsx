@@ -31,7 +31,7 @@ const Contact: React.FC = () => {
             </h2>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <a
-                href="https://instagram.com/takeabreakset"
+                href="https://instagram.com/takeabreaksets"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-3 px-6 py-3 bg-[#00f0ff]/20 border-2 border-[#00f0ff] text-[#00f0ff] hover:bg-[#00f0ff]/30 transition-all duration-300 text-base font-bold uppercase tracking-wider"
